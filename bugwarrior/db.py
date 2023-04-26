@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 
 MARKUP = "(bw)"
+FIELD_MAX_LENGTH = 10000
 
 DOGPILE_CACHE_PATH = os.path.expanduser(''.join([
     os.getenv('XDG_CACHE_HOME', '~/.cache'), '/dagd-py3.dbm']))
@@ -366,6 +367,16 @@ def synchronize(issue_generator, conf, main_section, dry_run=False):
         # Blank priority should mean *no* priority
         if issue_dict['priority'] == '':
             issue_dict['priority'] = None
+
+        if (
+            'gitlabdescription' in issue_dict
+            and len(issue_dict['gitlabdescription']) > FIELD_MAX_LENGTH
+        ):
+            log.warn(
+                "Description exceeded max size of %d, was %d"
+                % (FIELD_MAX_LENGTH, len(issue_dict['gitlabdescription']))
+            )
+            issue_dict['gitlabdescription'] = issue_dict['gitlabdescription'][:FIELD_MAX_LENGTH]
 
         try:
             existing_taskwarrior_uuid = find_taskwarrior_uuid(tw, key_list, issue_dict)
