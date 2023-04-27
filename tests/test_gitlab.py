@@ -582,6 +582,21 @@ class TestGitlabService(ConfigTest):
         self.assertEqual('M', self.service.config.default_mr_priority)
         self.assertEqual('H', self.service.config.default_todo_priority)
 
+    def test_body_zero_limit(self):
+        self.config['myservice']['body_length'] = 0
+        issue = dict(description="A very short issue body.  Fixes #42.")
+        self.assertEqual("", self.service.description(issue))
+
+    def test_body_short_limit(self):
+        size_limit = 5
+        self.config['myservice']['body_length'] = size_limit
+        issue = dict(description="A very short issue body.  Fixes #42.")
+        self.assertEqual(issue["description"][:size_limit], self.service.description(issue))
+
+    def test_body_no_limit(self):
+        issue = dict(description="A very short issue body.  Fixes #42.")
+        self.assertEqual(issue["description"], self.service.description(issue))
+
 
 class TestGitlabIssue(AbstractServiceTest, ServiceTest):
     maxDiff = None
